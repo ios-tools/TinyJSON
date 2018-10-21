@@ -1,0 +1,18 @@
+{
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": null,
+    "age": 20,
+    "happiness": 5.5,
+    "height": "170",
+    "gadgets": [
+        {
+            "type": "phone",
+            "name": "iPhone"
+        },
+        {
+            "type": "laptop",
+            "name": "linux"
+        }
+    ]
+}
