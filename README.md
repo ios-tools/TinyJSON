@@ -14,6 +14,13 @@ Pro:
 
 + fails early and loudly, allowing you to see *where* errors are occured.
 
++ allows to work with JSON just like JavaScript does: 
+
+```Swift
+    let name = json.data.entries[0].name.string               // new
+    let oldName = json["data"]["entries"][0]["name"].string   // old
+```
+
 Contra: 
 
-- does not allow to change underlying JSON data
+- ~does not allow to change underlying JSON data~ now it does!
