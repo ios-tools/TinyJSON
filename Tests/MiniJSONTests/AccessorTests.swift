@@ -22,6 +22,39 @@ final class AccessorTests: XCTestCase {
         expect(json["gadgets"][0]["name"].string) == "iPhone"
         expect(json["gadgets"][1]["type"].string) == "laptop"
         expect(json["gadgets"][1]["name"].string) == "linux"
+        
+        expect(json["hasChildren"].bool) == true
+        expect(json["hasGrandchildren"].bool) == false
+        expect(json["hasCousins"].bool) == true
+        expect(json["hasTwin"].bool) == false
+    }
+    
+    func testBoolChange() {
+        let data = try! Resource.json("user")
+        var json = JSON(data)
+        
+        expect(json["hasChildren"].bool) == true
+        json["hasChildren"].raw = false
+        expect(json["hasChildren"].bool) == false
+    }
+    
+    func testDeepChange() {
+        let data = try! Resource.json("user")
+        var json = JSON(data)
+        
+        json["gadgets"][0]["name"].string = "bell"
+        expect(json["gadgets"][0]["name"].string) == "bell"
+    }
+    
+    func testDynamicLookup() {
+        let data = try! Resource.json("user")
+        var json = JSON(data)
+        
+        expect(json.firstName.string) == "John"
+        expect(json.gadgets[0].name.string) == "iPhone"
+        
+        json.gadgets[0].name.string = "bell"
+        expect(json.gadgets[0].name.string) == "bell"
     }
 
 //    static var allTests = [

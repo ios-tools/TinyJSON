@@ -7,6 +7,12 @@
         "age": 20,
         "happiness": 5.5,
         "height": "170",
+        
+        "hasChildren": true,
+        "hasGrandchildren": "false",
+        "hasCousins": 1,
+        "hasTwin": 0,
+        
         "gadgets": [
             {
                 "type": "phone",

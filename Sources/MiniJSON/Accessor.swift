@@ -11,8 +11,9 @@
 
 import Foundation
 
+@dynamicMemberLookup
 struct JSON {
-    private(set) var raw: Any?
+    var raw: Any?
     let path: [Key]
     
     enum Key {
@@ -50,9 +51,19 @@ struct JSON {
         }
         set {
             var array = raw as! [Any]
-            array[index] = newValue.raw!
+            if index < array.count {
+                array[index] = newValue.raw!
+            }
+            else if index == array.count {
+                array.append(newValue.raw!)
+            }
             raw = array
         }
+    }
+    
+    subscript(dynamicMember member: String) -> JSON {
+        get { return self[member] }
+        set { self[member] = newValue }
     }
     
     // MARK: Accessors

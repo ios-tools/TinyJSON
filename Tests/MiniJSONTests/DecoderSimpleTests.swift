@@ -10,6 +10,11 @@ struct User: Codable {
     var happiness: Float
     var height: Int
     
+    var hasChildren: Bool
+    var hasGrandchildren: Bool
+    var hasCousins: Bool
+    var hasTwin: Bool
+    
     struct Gadget: Codable {
         enum GadgetType: String, Codable {
             case phone, laptop
@@ -49,6 +54,11 @@ final class DecoderTests: XCTestCase {
         expect(user.age) == 20
         expect(user.happiness) == 5.5
         expect(user.height) == 170
+        
+        expect(user.hasChildren).to(beTrue())
+        expect(user.hasGrandchildren).to(beFalse())
+        expect(user.hasCousins).to(beTrue())
+        expect(user.hasTwin).to(beFalse())
         
         expect(user.gadgets).to(haveCount(2))
         expect(user.gadgets[0].type) == .phone
