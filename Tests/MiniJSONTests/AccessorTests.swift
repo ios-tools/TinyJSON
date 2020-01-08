@@ -56,6 +56,10 @@ final class AccessorTests: XCTestCase {
         json.gadgets[0].name.string = "bell"
         expect(json.gadgets[0].name.string) == "bell"
     }
+    
+    func testDefaultValues() {
+        
+    }
 
 //    static var allTests = [
 //        ("testReading", testReading),

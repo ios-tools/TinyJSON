@@ -67,6 +67,48 @@ final class DecoderTests: XCTestCase {
         expect(user.gadgets[1].name) == "linux"
     }
     
+    func testMalformedInput() {
+        let data = try! Resource.json("user_malformed")
+        let json = JSON(data)
+        
+        expect { try json.missingKey.decode() as User }.to(throwError(closure: { (error) in
+            guard case DecodingError.keyNotFound(let key, let context) = error else { fail("wrong error"); return }
+            expect(key.stringValue).to(equal("lastName"))
+        }))
+        
+        expect { try json.missingValue.decode() as User }.to(throwError(closure: { (error) in
+            guard case DecodingError.valueNotFound(let type, let context) = error else { fail("wrong error"); return }
+            expect(type == String.self).to(beTrue())
+            expect(context.codingPath.last?.stringValue) == "lastName"
+        }))
+        
+        expect { try json.wrongType.decode() as User }.to(throwError(closure: { (error) in
+            guard case DecodingError.typeMismatch(let type, let context) = error else { fail("wrong error"); return }
+            expect(type == Int.self).to(beTrue())
+            expect(context.codingPath.last?.stringValue) == "age"
+        }))
+    }
+    
+    func testDefaultValues() {
+        let data = try! Resource.json("user_malformed")
+        let json = JSON(data)
+        
+        
+        expect {
+            let user: User = try json.missingKey.silentDecode()
+            expect(user.lastName) == ""
+            return nil
+        }.notTo(throwError())
+        
+        
+        expect {
+            let user: User = try json.missingValue.silentDecode()
+            expect(user.lastName) == ""
+            return nil
+        }.notTo(throwError())
+        
+    }
+    
     //    static var allTests = [
     //        ("testReading", testReading),
     //    ]

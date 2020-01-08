@@ -24,6 +24,7 @@ struct JSON {
     init(_ object: Any? = nil, path: [Key] = []) {
         raw = object
         self.path = path
+        self.nullStrategy = JSON.nullStrategy   // use current default null strategy (can be changed by client)
     }
     
     var exists: Bool { return raw != nil }
@@ -155,64 +156,81 @@ struct JSON {
         return result
     }
     
+    //MARK: non-optional accessors
+    
+    enum NullStrategy {
+        case forceUnwrap, useEmptyValue
+        case custom((JSON) -> Any)
+    }
+    static var nullStrategy: NullStrategy = .forceUnwrap
+    var nullStrategy: NullStrategy
+    
+    private func unwrap<T: TypeWithDefaultValue>(value: T?) -> T {
+        switch nullStrategy {
+        case .forceUnwrap: return value!
+        case .useEmptyValue: return value ?? T()
+        case .custom(let closure): return closure(self) as! T
+        }
+    }
+    
     var stringValue: String {
-        get { return string! }
+        get { return unwrap(value: string) }
         set { raw = newValue }
     }
     
     var intValue: Int {
-        get { return int! }
+        get { return unwrap(value: int) }
         set { raw = newValue }
     }
     var int8Value: Int8 {
-        get { return int8! }
+        get { return unwrap(value: int8) }
         set { raw = newValue }
     }
     var int16Value: Int16 {
-        get { return int16! }
+        get { return unwrap(value: int16) }
         set { raw = newValue }
     }
     var int32Value: Int32 {
-        get { return int32! }
+        get { return unwrap(value: int32) }
         set { raw = newValue }
     }
     var int64Value: Int64 {
-        get { return int64! }
+        get { return unwrap(value: int64) }
         set { raw = newValue }
     }
     
     var uintValue: UInt {
-        get { return uint! }
+        get { return unwrap(value: uint) }
         set { raw = newValue }
     }
     var uint8Value: UInt8 {
-        get { return uint8! }
+        get { return unwrap(value: uint8) }
         set { raw = newValue }
     }
     var uint16Value: UInt16 {
-        get { return uint16! }
+        get { return unwrap(value: uint16) }
         set { raw = newValue }
     }
     var uint32Value: UInt32 {
-        get { return uint32! }
+        get { return unwrap(value: uint32) }
         set { raw = newValue }
     }
     var uint64Value: UInt64 {
-        get { return uint64! }
+        get { return unwrap(value: uint64) }
         set { raw = newValue }
     }
     
     var floatValue: Float {
-        get { return float! }
+        get { return unwrap(value: float) }
         set { raw = newValue }
     }
     var doubleValue: Double {
-        get { return double! }
+        get { return unwrap(value: double) }
         set { raw = newValue }
     }
     
     var boolValue: Bool {
-        get { return bool! }
+        get { return unwrap(value: bool) }
         set { raw = newValue }
     }
 }
@@ -248,3 +266,42 @@ extension JSON.Key: CodingKey {
         self = .index(intValue)
     }
 }
+
+/// any type that has available initializer with no parameters, which can be used as "default" value for this type.
+/// Used to substitute absent JSON primitive property values with some empty value (ie "", 0, 0.0 and such)
+protocol TypeWithDefaultValue {
+    init()
+}
+
+//extension TypeWithDefaultValue where Self: BinaryInteger {
+//    static var defaultValue: Self { return 0 }
+//}
+//
+//extension TypeWithDefaultValue where Self: BinaryFloatingPoint {
+//    static var defaultValue: Self { return 0.0 }
+//}
+//
+//extension String: TypeWithDefaultValue {
+//    static let defaultValue = ""
+//}
+//
+//extension Bool: TypeWithDefaultValue {
+//    static let defaultValue = false
+//}
+
+extension String: TypeWithDefaultValue {}
+extension Bool: TypeWithDefaultValue {}
+
+extension Int: TypeWithDefaultValue {}
+extension Int8: TypeWithDefaultValue {}
+extension Int16: TypeWithDefaultValue {}
+extension Int32: TypeWithDefaultValue {}
+extension Int64: TypeWithDefaultValue {}
+extension UInt: TypeWithDefaultValue {}
+extension UInt8: TypeWithDefaultValue {}
+extension UInt16: TypeWithDefaultValue {}
+extension UInt32: TypeWithDefaultValue {}
+extension UInt64: TypeWithDefaultValue {}
+
+extension Float: TypeWithDefaultValue {}
+extension Double: TypeWithDefaultValue {}

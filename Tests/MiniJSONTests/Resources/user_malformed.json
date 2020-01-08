@@ -1,0 +1,73 @@
+{
+    "missingKey": {
+        "firstName": "John",
+        "email": null,
+        "age": 20,
+        "happiness": 5.5,
+        "height": "170",
+        
+        "hasChildren": true,
+        "hasGrandchildren": "false",
+        "hasCousins": 1,
+        "hasTwin": 0,
+        
+        "gadgets": [
+            {
+                "type": "phone",
+                "name": "iPhone"
+            },
+            {
+                "type": "laptop",
+                "name": "linux"
+            }
+        ]
+    },
+    "missingValue": {
+        "firstName": "John",
+        "lastName": null,
+        "email": null,
+        "age": 20,
+        "happiness": 5.5,
+        "height": "170",
+        
+        "hasChildren": true,
+        "hasGrandchildren": "false",
+        "hasCousins": 1,
+        "hasTwin": 0,
+        
+        "gadgets": [
+            {
+                "type": "phone",
+                "name": "iPhone"
+            },
+            {
+                "type": "laptop",
+                "name": "linux"
+            }
+        ]
+    },
+    "wrongType": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "email": null,
+        "age": "very old",
+        "happiness": 5.5,
+        "height": "170",
+        
+        "hasChildren": true,
+        "hasGrandchildren": "false",
+        "hasCousins": 1,
+        "hasTwin": 0,
+        
+        "gadgets": [
+            {
+                "type": "phone",
+                "name": "iPhone"
+            },
+            {
+                "type": "laptop",
+                "name": "linux"
+            }
+        ]
+    }
+}

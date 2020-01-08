@@ -15,12 +15,12 @@ class MiniJSONEncoder: Encoder {
     var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
     
     // didSet does not work as expected as of Swift 4.2.1 - not called on _every_ change of underlying value
-    var _json: JSON
+    private var _json: JSON
     var json: JSON {
         get { return _json }
         set {
             _json = newValue
-            guard let parent = _parent, let lastKey = codingPath.last else { print("no parent"); return }
+            guard let parent = _parent, let lastKey = codingPath.last else { return }
             // propagate changes upward. By default, swift only change local `json` var because of value semantic of structs
             if let index = lastKey.intValue {
                 parent.json[index] = _json

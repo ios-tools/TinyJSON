@@ -9,30 +9,30 @@
 import Foundation
 
 
-extension JSON {
-    func decode<T: Decodable>() throws -> T {
-        let decoder = MiniJSONDecoder(json: self)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        decoder.dateDecodingStrategy = .formatted(dateFormatter)
-        
-        return try T(from: decoder)
-    }
-    
-    func tryDecode<T: Decodable>() -> T? {
-        do {
-            return try self.decode()
-        } catch {
-            print(error)
-        }
-        return nil
-    }
-}
-
 class MiniJSONDecoder: Decoder {
     
     typealias DateDecodingStrategy = JSONDecoder.DateDecodingStrategy
     var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
+    
+    // what to do field
+    struct WrongStructureStrategy {
+        enum Strategy {
+            case `throw`, useDefault
+            case report((MiniJSONDecoder, DecodingError) -> Void)
+//            case custom((MiniJSONDecoder) -> String)
+        }
+        
+        var keyNotFound: Strategy
+        var valueNotFound: Strategy
+        var typeMismatch: Strategy
+        
+        static let `throw` = WrongStructureStrategy(keyNotFound: .throw, valueNotFound: .throw, typeMismatch: .throw)
+        static let useDefault = WrongStructureStrategy(keyNotFound: .useDefault, valueNotFound: .useDefault, typeMismatch: .useDefault)
+        static func report(_ closure: @escaping (MiniJSONDecoder, DecodingError) -> Void) -> WrongStructureStrategy {
+            return WrongStructureStrategy(keyNotFound: .report(closure), valueNotFound: .report(closure), typeMismatch: .report(closure))
+        }
+    }
+    var wrongStructureStrategy: WrongStructureStrategy = .throw
     
     var json: JSON
     private var _parent: MiniJSONDecoder?
@@ -47,6 +47,7 @@ class MiniJSONDecoder: Decoder {
         if let parent = parent {
             codingPath = parent.codingPath
             dateDecodingStrategy = parent.dateDecodingStrategy
+            wrongStructureStrategy = parent.wrongStructureStrategy
             if let key = key {
                 codingPath.append(key)
             }
@@ -82,6 +83,35 @@ class MiniJSONDecoder: Decoder {
         return try T(from: self)
     }
     
+    fileprivate func value<T: LosslessStringConvertible & TypeWithDefaultValue>() throws -> T {
+        func context(_ desc: String) -> DecodingError.Context {
+            return DecodingError.Context(codingPath: codingPath, debugDescription: desc)
+        }
+        
+        func fix(_ strategy: WrongStructureStrategy.Strategy, error: @autoclosure () -> DecodingError) throws -> T {
+            switch strategy {
+            case .throw: throw error()
+            case .useDefault: return T()
+            case .report(let closure):
+                closure(self, error())
+                return T()
+            }
+        }
+        
+        guard self.json.exists  else {
+            return try fix(wrongStructureStrategy.keyNotFound,
+                           error: .keyNotFound(codingPath.last ?? JSON.Key.name("-"), context("key not found in json")))
+        }
+        guard !self.json.isNull else {
+            return try fix(wrongStructureStrategy.valueNotFound,
+                           error: .valueNotFound(T.self, context("expected value, got null")))
+        }
+        guard let result: T = self.json.stringConvertible() else {
+            return try fix(wrongStructureStrategy.typeMismatch,
+                           error: .typeMismatch(T.self, context("expected \(T.self), got \(type(of: json.raw))")))
+        }
+        return result
+    }
 }
 
 
@@ -96,20 +126,20 @@ private struct Keyed<Key: CodingKey>: KeyedDecodingContainerProtocol {
     func contains(_ key: Key) -> Bool { return decoder.json[key.stringValue].exists }
     func decodeNil(forKey key: Key) throws -> Bool { return decoder.json[key.stringValue].isNull }
     
-    func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { return decoder.child(string: key).json.boolValue }
-    func decode(_ type: String.Type, forKey key: Key) throws -> String { return decoder.child(string: key).json.stringValue }
-    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return decoder.child(string: key).json.doubleValue }
-    func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { return decoder.child(string: key).json.floatValue }
-    func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { return decoder.child(string: key).json.intValue }
-    func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { return decoder.child(string: key).json.int8Value }
-    func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { return decoder.child(string: key).json.int16Value }
-    func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { return decoder.child(string: key).json.int32Value }
-    func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { return decoder.child(string: key).json.int64Value }
-    func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { return decoder.child(string: key).json.uintValue }
-    func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { return decoder.child(string: key).json.uint8Value }
-    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return decoder.child(string: key).json.uint16Value }
-    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return decoder.child(string: key).json.uint32Value }
-    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return decoder.child(string: key).json.uint64Value }
+    func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { return try decoder.child(string: key).value() }
+    func decode(_ type: String.Type, forKey key: Key) throws -> String { return try decoder.child(string: key).value() }
+    func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return try decoder.child(string: key).value() }
+    func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { return try decoder.child(string: key).value() }
+    func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { return try decoder.child(string: key).value() }
+    func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { return try decoder.child(string: key).value() }
+    func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { return try decoder.child(string: key).value() }
+    func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { return try decoder.child(string: key).value() }
+    func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { return try decoder.child(string: key).value() }
+    func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { return try decoder.child(string: key).value() }
+    func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { return try decoder.child(string: key).value() }
+    func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return try decoder.child(string: key).value() }
+    func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return try decoder.child(string: key).value() }
+    func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return try decoder.child(string: key).value() }
     func decode<T>(_ type: T.Type,   forKey key: Key) throws -> T where T : Decodable {
         return try decoder.child(string: key).decode(as: T.self)
     }
@@ -147,20 +177,20 @@ private struct Unkeyed: UnkeyedDecodingContainer {
     
     mutating func decodeNil() throws -> Bool { return step().json.isNull }
     
-    mutating func decode(_ type: Bool.Type   ) throws -> Bool   { return step().json.boolValue }
-    mutating func decode(_ type: String.Type ) throws -> String { return step().json.stringValue }
-    mutating func decode(_ type: Double.Type ) throws -> Double { return step().json.doubleValue }
-    mutating func decode(_ type: Float.Type  ) throws -> Float  { return step().json.floatValue }
-    mutating func decode(_ type: Int.Type    ) throws -> Int    { return step().json.intValue }
-    mutating func decode(_ type: Int8.Type   ) throws -> Int8   { return step().json.int8Value }
-    mutating func decode(_ type: Int16.Type  ) throws -> Int16  { return step().json.int16Value }
-    mutating func decode(_ type: Int32.Type  ) throws -> Int32  { return step().json.int32Value }
-    mutating func decode(_ type: Int64.Type  ) throws -> Int64  { return step().json.int64Value }
-    mutating func decode(_ type: UInt.Type   ) throws -> UInt   { return step().json.uintValue }
-    mutating func decode(_ type: UInt8.Type  ) throws -> UInt8  { return step().json.uint8Value }
-    mutating func decode(_ type: UInt16.Type ) throws -> UInt16 { return step().json.uint16Value }
-    mutating func decode(_ type: UInt32.Type ) throws -> UInt32 { return step().json.uint32Value }
-    mutating func decode(_ type: UInt64.Type ) throws -> UInt64 { return step().json.uint64Value }
+    mutating func decode(_ type: Bool.Type   ) throws -> Bool   { return try step().value() }
+    mutating func decode(_ type: String.Type ) throws -> String { return try step().value() }
+    mutating func decode(_ type: Double.Type ) throws -> Double { return try step().value() }
+    mutating func decode(_ type: Float.Type  ) throws -> Float  { return try step().value() }
+    mutating func decode(_ type: Int.Type    ) throws -> Int    { return try step().value() }
+    mutating func decode(_ type: Int8.Type   ) throws -> Int8   { return try step().value() }
+    mutating func decode(_ type: Int16.Type  ) throws -> Int16  { return try step().value() }
+    mutating func decode(_ type: Int32.Type  ) throws -> Int32  { return try step().value() }
+    mutating func decode(_ type: Int64.Type  ) throws -> Int64  { return try step().value() }
+    mutating func decode(_ type: UInt.Type   ) throws -> UInt   { return try step().value() }
+    mutating func decode(_ type: UInt8.Type  ) throws -> UInt8  { return try step().value() }
+    mutating func decode(_ type: UInt16.Type ) throws -> UInt16 { return try step().value() }
+    mutating func decode(_ type: UInt32.Type ) throws -> UInt32 { return try step().value() }
+    mutating func decode(_ type: UInt64.Type ) throws -> UInt64 { return try step().value() }
     mutating func decode<T>(_ type: T.Type   ) throws -> T where T : Decodable {
         return try step().decode(as: T.self)
     }
@@ -190,20 +220,20 @@ private struct SingleValue: SingleValueDecodingContainer {
     
     func decodeNil() -> Bool { return decoder.json.isNull }
     
-    func decode(_ type: Bool.Type   ) throws -> Bool   { return decoder.json.boolValue }
-    func decode(_ type: String.Type ) throws -> String { return decoder.json.stringValue }
-    func decode(_ type: Double.Type ) throws -> Double { return decoder.json.doubleValue }
-    func decode(_ type: Float.Type  ) throws -> Float  { return decoder.json.floatValue }
-    func decode(_ type: Int.Type    ) throws -> Int    { return decoder.json.intValue }
-    func decode(_ type: Int8.Type   ) throws -> Int8   { return decoder.json.int8Value }
-    func decode(_ type: Int16.Type  ) throws -> Int16  { return decoder.json.int16Value }
-    func decode(_ type: Int32.Type  ) throws -> Int32  { return decoder.json.int32Value }
-    func decode(_ type: Int64.Type  ) throws -> Int64  { return decoder.json.int64Value }
-    func decode(_ type: UInt.Type   ) throws -> UInt   { return decoder.json.uintValue }
-    func decode(_ type: UInt8.Type  ) throws -> UInt8  { return decoder.json.uint8Value }
-    func decode(_ type: UInt16.Type ) throws -> UInt16 { return decoder.json.uint16Value }
-    func decode(_ type: UInt32.Type ) throws -> UInt32 { return decoder.json.uint32Value }
-    func decode(_ type: UInt64.Type ) throws -> UInt64 { return decoder.json.uint64Value }
+    func decode(_ type: Bool.Type   ) throws -> Bool   { return try decoder.value() }
+    func decode(_ type: String.Type ) throws -> String { return try decoder.value() }
+    func decode(_ type: Double.Type ) throws -> Double { return try decoder.value() }
+    func decode(_ type: Float.Type  ) throws -> Float  { return try decoder.value() }
+    func decode(_ type: Int.Type    ) throws -> Int    { return try decoder.value() }
+    func decode(_ type: Int8.Type   ) throws -> Int8   { return try decoder.value() }
+    func decode(_ type: Int16.Type  ) throws -> Int16  { return try decoder.value() }
+    func decode(_ type: Int32.Type  ) throws -> Int32  { return try decoder.value() }
+    func decode(_ type: Int64.Type  ) throws -> Int64  { return try decoder.value() }
+    func decode(_ type: UInt.Type   ) throws -> UInt   { return try decoder.value() }
+    func decode(_ type: UInt8.Type  ) throws -> UInt8  { return try decoder.value() }
+    func decode(_ type: UInt16.Type ) throws -> UInt16 { return try decoder.value() }
+    func decode(_ type: UInt32.Type ) throws -> UInt32 { return try decoder.value() }
+    func decode(_ type: UInt64.Type ) throws -> UInt64 { return try decoder.value() }
     func decode<T>(_ type: T.Type   ) throws -> T where T : Decodable {
         return try decoder.decode(as: T.self)
     }
