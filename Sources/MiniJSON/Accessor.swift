@@ -12,25 +12,25 @@
 import Foundation
 
 @dynamicMemberLookup
-struct JSON {
-    var raw: Any?
-    let path: [Key]
+public struct JSON {
+    public var raw: Any?
+    public let path: [Key]
     
-    enum Key {
+    public enum Key {
         case name(String)
         case index(Int)
     }
     
-    init(_ object: Any? = nil, path: [Key] = []) {
+    public init(_ object: Any? = nil, path: [Key] = []) {
         raw = object
         self.path = path
         self.nullStrategy = JSON.nullStrategy   // use current default null strategy (can be changed by client)
     }
     
-    var exists: Bool { return raw != nil }
-    var isNull: Bool { return raw is NSNull }
+    public var exists: Bool { return raw != nil }
+    public var isNull: Bool { return raw is NSNull }
     
-    subscript(key: String) -> JSON {
+    public subscript(key: String) -> JSON {
         get {
             let newPath = path.appending(.name(key))
             guard let dictionary = raw as? [String: Any] else { return JSON(path: newPath) }
@@ -43,7 +43,7 @@ struct JSON {
         }
     }
     
-    subscript(index: Int) -> JSON {
+    public subscript(index: Int) -> JSON {
         get {
             let newPath = path.appending(.index(index))
             guard let array = raw as? [Any] else { return JSON(path: newPath) }
@@ -62,83 +62,83 @@ struct JSON {
         }
     }
     
-    subscript(dynamicMember member: String) -> JSON {
+    public subscript(dynamicMember member: String) -> JSON {
         get { return self[member] }
         set { self[member] = newValue }
     }
     
     // MARK: Accessors
     
-    func stringConvertible<T: LosslessStringConvertible>() -> T? {
+    public func stringConvertible<T: LosslessStringConvertible>() -> T? {
         if let already = raw as? T { return already }
         if let string = raw as? String { return T(string) }
         return nil
     }
     
-    var string: String? {
+    public var string: String? {
         get { return raw as? String }
         set { raw = newValue }
     }
     
-    var int: Int? {
+    public var int: Int? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
-    var int8: Int8? {
+    public var int8: Int8? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
-    var int16: Int16? {
+    public var int16: Int16? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
-    var int32: Int32? {
+    public var int32: Int32? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
-    var int64: Int64? {
-        get { return stringConvertible() }
-        set { raw = newValue }
-    }
-    
-    var uint: UInt? {
-        get { return stringConvertible() }
-        set { raw = newValue }
-    }
-    var uint8: UInt8? {
-        get { return stringConvertible() }
-        set { raw = newValue }
-    }
-    var uint16: UInt16? {
-        get { return stringConvertible() }
-        set { raw = newValue }
-    }
-    var uint32: UInt32? {
-        get { return stringConvertible() }
-        set { raw = newValue }
-    }
-    var uint64: UInt64? {
+    public var int64: Int64? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
     
-    var float: Float? {
+    public var uint: UInt? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
-    var double: Double? {
+    public var uint8: UInt8? {
+        get { return stringConvertible() }
+        set { raw = newValue }
+    }
+    public var uint16: UInt16? {
+        get { return stringConvertible() }
+        set { raw = newValue }
+    }
+    public var uint32: UInt32? {
+        get { return stringConvertible() }
+        set { raw = newValue }
+    }
+    public var uint64: UInt64? {
+        get { return stringConvertible() }
+        set { raw = newValue }
+    }
+    
+    public var float: Float? {
+        get { return stringConvertible() }
+        set { raw = newValue }
+    }
+    public var double: Double? {
         get { return stringConvertible() }
         set { raw = newValue }
     }
 //    var decimal: Decimal? { return stringConvertible() }      // later
     
-    var bool: Bool? {
+    public var bool: Bool? {
         if let fromStr: Bool = stringConvertible() { return fromStr }
         if let int: Int = stringConvertible() { return int != 0 }       // 0 / 1 flag types
         return nil
     }
     
-    var array: [JSON]? {
+    public var array: [JSON]? {
         guard let array = raw as? [Any] else { return nil }
         var result: [JSON] = []
         for i in 0 ..< array.count {
@@ -147,7 +147,7 @@ struct JSON {
         return result
     }
     
-    var dictionary: [String: JSON]? {
+    public var dictionary: [String: JSON]? {
         guard let dict = raw as? [String: Any] else { return nil }
         var result: [String: JSON] = [:]
         for (key, value) in dict {
@@ -158,12 +158,12 @@ struct JSON {
     
     //MARK: non-optional accessors
     
-    enum NullStrategy {
+    public enum NullStrategy {
         case forceUnwrap, useEmptyValue
         case custom((JSON) -> Any)
     }
-    static var nullStrategy: NullStrategy = .forceUnwrap
-    var nullStrategy: NullStrategy
+    public static var nullStrategy: NullStrategy = .forceUnwrap
+    public var nullStrategy: NullStrategy
     
     private func unwrap<T: TypeWithDefaultValue>(value: T?) -> T {
         switch nullStrategy {
@@ -173,69 +173,69 @@ struct JSON {
         }
     }
     
-    var stringValue: String {
+    public var stringValue: String {
         get { return unwrap(value: string) }
         set { raw = newValue }
     }
     
-    var intValue: Int {
+    public var intValue: Int {
         get { return unwrap(value: int) }
         set { raw = newValue }
     }
-    var int8Value: Int8 {
+    public var int8Value: Int8 {
         get { return unwrap(value: int8) }
         set { raw = newValue }
     }
-    var int16Value: Int16 {
+    public var int16Value: Int16 {
         get { return unwrap(value: int16) }
         set { raw = newValue }
     }
-    var int32Value: Int32 {
+    public var int32Value: Int32 {
         get { return unwrap(value: int32) }
         set { raw = newValue }
     }
-    var int64Value: Int64 {
+    public var int64Value: Int64 {
         get { return unwrap(value: int64) }
         set { raw = newValue }
     }
     
-    var uintValue: UInt {
+    public var uintValue: UInt {
         get { return unwrap(value: uint) }
         set { raw = newValue }
     }
-    var uint8Value: UInt8 {
+    public var uint8Value: UInt8 {
         get { return unwrap(value: uint8) }
         set { raw = newValue }
     }
-    var uint16Value: UInt16 {
+    public var uint16Value: UInt16 {
         get { return unwrap(value: uint16) }
         set { raw = newValue }
     }
-    var uint32Value: UInt32 {
+    public var uint32Value: UInt32 {
         get { return unwrap(value: uint32) }
         set { raw = newValue }
     }
-    var uint64Value: UInt64 {
+    public var uint64Value: UInt64 {
         get { return unwrap(value: uint64) }
         set { raw = newValue }
     }
     
-    var floatValue: Float {
+    public var floatValue: Float {
         get { return unwrap(value: float) }
         set { raw = newValue }
     }
-    var doubleValue: Double {
+    public var doubleValue: Double {
         get { return unwrap(value: double) }
         set { raw = newValue }
     }
     
-    var boolValue: Bool {
+    public var boolValue: Bool {
         get { return unwrap(value: bool) }
         set { raw = newValue }
     }
 }
 
-extension Array where Element == JSON.Key {
+public extension Array where Element == JSON.Key {
     func appending(_ component: JSON.Key) -> Array {
         var new = self
         new.append(component)
@@ -244,25 +244,25 @@ extension Array where Element == JSON.Key {
 }
 
 extension JSON.Key: CodingKey {
-    var stringValue: String {
+    public var stringValue: String {
         switch self {
         case .name(let value): return value
         case .index(let value): return "\(value)"
         }
     }
     
-    var intValue: Int? {
+    public var intValue: Int? {
         switch self {
         case .name(_): return nil
         case .index(let value): return value
         }
     }
     
-    init?(stringValue: String) {
+    public init?(stringValue: String) {
         self = .name(stringValue)
     }
     
-    init?(intValue: Int) {
+    public init?(intValue: Int) {
         self = .index(intValue)
     }
 }

@@ -9,14 +9,14 @@
 import Foundation
 
 
-class MiniJSONEncoder: Encoder {
+public class MiniJSONEncoder: Encoder {
     
-    typealias DateEncodingStrategy = JSONEncoder.DateEncodingStrategy
-    var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
+    public typealias DateEncodingStrategy = JSONEncoder.DateEncodingStrategy
+    public var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
     
     // didSet does not work as expected as of Swift 4.2.1 - not called on _every_ change of underlying value
     private var _json: JSON
-    var json: JSON {
+    public var json: JSON {
         get { return _json }
         set {
             _json = newValue
@@ -32,10 +32,10 @@ class MiniJSONEncoder: Encoder {
     private var _parent: MiniJSONEncoder?
     var parent: MiniJSONEncoder { return _parent ?? self }
     
-    private(set) var codingPath: [CodingKey] = []
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    public private(set) var codingPath: [CodingKey] = []
+    public var userInfo: [CodingUserInfoKey : Any] = [:]
     
-    init() {
+    public init() {
         _json = JSON()
     }
     
@@ -46,17 +46,17 @@ class MiniJSONEncoder: Encoder {
         codingPath.append(key)
     }
     
-    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+    public func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
         self.json.raw = [String: Any]()
         return KeyedEncodingContainer(Keyed(encoder: self))
     }
     
-    func unkeyedContainer() -> UnkeyedEncodingContainer {
+    public func unkeyedContainer() -> UnkeyedEncodingContainer {
         self.json.raw = [Any]()
         return Unkeyed(encoder: self)
     }
     
-    func singleValueContainer() -> SingleValueEncodingContainer {
+    public func singleValueContainer() -> SingleValueEncodingContainer {
         return SingleValue(encoder: self)
     }
     

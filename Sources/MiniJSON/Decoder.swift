@@ -9,39 +9,39 @@
 import Foundation
 
 
-class MiniJSONDecoder: Decoder {
+public class MiniJSONDecoder: Decoder {
     
-    typealias DateDecodingStrategy = JSONDecoder.DateDecodingStrategy
-    var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
+    public typealias DateDecodingStrategy = JSONDecoder.DateDecodingStrategy
+    public var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
     
     // what to do field
-    struct WrongStructureStrategy {
-        enum Strategy {
+    public struct WrongStructureStrategy {
+        public enum Strategy {
             case `throw`, useDefault
             case report((MiniJSONDecoder, DecodingError) -> Void)
 //            case custom((MiniJSONDecoder) -> String)
         }
         
-        var keyNotFound: Strategy
-        var valueNotFound: Strategy
-        var typeMismatch: Strategy
+        public var keyNotFound: Strategy
+        public var valueNotFound: Strategy
+        public var typeMismatch: Strategy
         
-        static let `throw` = WrongStructureStrategy(keyNotFound: .throw, valueNotFound: .throw, typeMismatch: .throw)
-        static let useDefault = WrongStructureStrategy(keyNotFound: .useDefault, valueNotFound: .useDefault, typeMismatch: .useDefault)
-        static func report(_ closure: @escaping (MiniJSONDecoder, DecodingError) -> Void) -> WrongStructureStrategy {
+        public static let `throw` = WrongStructureStrategy(keyNotFound: .throw, valueNotFound: .throw, typeMismatch: .throw)
+        public static let useDefault = WrongStructureStrategy(keyNotFound: .useDefault, valueNotFound: .useDefault, typeMismatch: .useDefault)
+        public static func report(_ closure: @escaping (MiniJSONDecoder, DecodingError) -> Void) -> WrongStructureStrategy {
             return WrongStructureStrategy(keyNotFound: .report(closure), valueNotFound: .report(closure), typeMismatch: .report(closure))
         }
     }
-    var wrongStructureStrategy: WrongStructureStrategy = .throw
+    public var wrongStructureStrategy: WrongStructureStrategy = .throw
     
-    var json: JSON
+    public internal(set) var json: JSON
     private var _parent: MiniJSONDecoder?
     var parent: MiniJSONDecoder { return _parent ?? self }
     
-    private(set) var codingPath: [CodingKey] = []
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    public private(set) var codingPath: [CodingKey] = []
+    public var userInfo: [CodingUserInfoKey : Any] = [:]
     
-    init(json: JSON, key: CodingKey? = nil, parent: MiniJSONDecoder? = nil) {
+    public init(json: JSON, key: CodingKey? = nil, parent: MiniJSONDecoder? = nil) {
         self.json = json
         _parent = parent
         if let parent = parent {
@@ -54,15 +54,15 @@ class MiniJSONDecoder: Decoder {
         }
     }
     
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+    public func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
         return KeyedDecodingContainer(Keyed(decoder: self))
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+    public func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         return Unkeyed(decoder: self)
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
+    public func singleValueContainer() throws -> SingleValueDecodingContainer {
         return SingleValue(decoder: self)
     }
     
