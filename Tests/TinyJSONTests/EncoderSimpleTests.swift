@@ -1,13 +1,13 @@
 //
 //  EncoderSimpleTests.swift
-//  MiniJSONTests
+//  TinyJSONTests
 //
 //  Created by Cemen Istomin on 05/11/2018.
 //
 
 import XCTest
 import Nimble
-@testable import MiniJSON
+@testable import TinyJSON
 
 class EncoderSimpleTests: XCTestCase {
     
@@ -28,7 +28,7 @@ class EncoderSimpleTests: XCTestCase {
                                     name: "linux")])
 
     func testExample() {
-        let encoder = MiniJSONEncoder()
+        let encoder = TinyJSONEncoder()
         try! sample.encode(to: encoder)
         
         expect(encoder.json["firstName"].string) == "John"

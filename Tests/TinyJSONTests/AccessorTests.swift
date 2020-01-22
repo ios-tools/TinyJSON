@@ -1,6 +1,6 @@
 import XCTest
 import Nimble
-@testable import MiniJSON
+@testable import TinyJSON
 
 final class AccessorTests: XCTestCase {
     

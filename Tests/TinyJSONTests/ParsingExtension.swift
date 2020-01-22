@@ -1,17 +1,17 @@
 //
 //  ParsingExtension.swift
-//  MiniJSON
+//  TinyJSON
 //
 //  Created by Cemen Istomin on 26/12/2018.
 //
 //  an example of parsing extension with some customization of parser
 
 import Foundation
-@testable import MiniJSON
+@testable import TinyJSON
 
 extension JSON {
     func decode<T: Decodable>() throws -> T {
-        let decoder = MiniJSONDecoder(json: self)
+        let decoder = TinyJSONDecoder(json: self)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         decoder.dateDecodingStrategy = .formatted(dateFormatter)
@@ -29,7 +29,7 @@ extension JSON {
     }
     
     func silentDecode<T: Decodable>() throws -> T {
-        let decoder = MiniJSONDecoder(json: self)
+        let decoder = TinyJSONDecoder(json: self)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         decoder.dateDecodingStrategy = .formatted(dateFormatter)

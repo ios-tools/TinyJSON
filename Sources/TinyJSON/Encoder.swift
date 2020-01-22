@@ -1,6 +1,6 @@
 //
 //  Encoder.swift
-//  JSONKit
+//  TinyJSON
 //
 //  Created by Cemen Istomin on 20/10/2018.
 //  Covered by MIT license.
@@ -9,7 +9,7 @@
 import Foundation
 
 
-public class MiniJSONEncoder: Encoder {
+public class TinyJSONEncoder: Encoder {
     
     public typealias DateEncodingStrategy = JSONEncoder.DateEncodingStrategy
     public var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
@@ -29,8 +29,8 @@ public class MiniJSONEncoder: Encoder {
             }
         }
     }
-    private var _parent: MiniJSONEncoder?
-    var parent: MiniJSONEncoder { return _parent ?? self }
+    private var _parent: TinyJSONEncoder?
+    var parent: TinyJSONEncoder { return _parent ?? self }
     
     public private(set) var codingPath: [CodingKey] = []
     public var userInfo: [CodingUserInfoKey : Any] = [:]
@@ -39,7 +39,7 @@ public class MiniJSONEncoder: Encoder {
         _json = JSON()
     }
     
-    fileprivate init(json: JSON, key: CodingKey, parent: MiniJSONEncoder) {
+    fileprivate init(json: JSON, key: CodingKey, parent: TinyJSONEncoder) {
         self._json = json
         _parent = parent
         codingPath = parent.codingPath
@@ -62,12 +62,12 @@ public class MiniJSONEncoder: Encoder {
     
     // MARK: - Utils
     
-    fileprivate func child(string key: CodingKey) -> MiniJSONEncoder {
-        return MiniJSONEncoder(json: json[key.stringValue], key: key, parent: self)
+    fileprivate func child(string key: CodingKey) -> TinyJSONEncoder {
+        return TinyJSONEncoder(json: json[key.stringValue], key: key, parent: self)
     }
     
-    fileprivate func child(index key: CodingKey) -> MiniJSONEncoder {
-        return MiniJSONEncoder(json: json[key.intValue!], key: key, parent: self)
+    fileprivate func child(index key: CodingKey) -> TinyJSONEncoder {
+        return TinyJSONEncoder(json: json[key.intValue!], key: key, parent: self)
     }
     
     fileprivate func encode<T: Encodable>(_ value: T) throws {
@@ -94,7 +94,7 @@ private struct Keyed<Key: CodingKey>: KeyedEncodingContainerProtocol {
         guard let dictionary = encoder.json.raw as? [String: Any] else { return [] }
         return dictionary.keys.compactMap { Key(stringValue: $0) }
     }
-    var encoder: MiniJSONEncoder
+    var encoder: TinyJSONEncoder
     
     mutating func encodeNil(forKey key: Key) throws { encoder.child(string: key).json.raw = NSNull() }
     mutating func encode(_ value: Bool,   forKey key: Key) throws { encoder.child(string: key).json.raw = value }
@@ -136,8 +136,8 @@ private struct Keyed<Key: CodingKey>: KeyedEncodingContainerProtocol {
 private struct Unkeyed: UnkeyedEncodingContainer {
     
     var currentIndex: Int = 0
-    var encoder: MiniJSONEncoder
-    init(encoder: MiniJSONEncoder) {
+    var encoder: TinyJSONEncoder
+    init(encoder: TinyJSONEncoder) {
         self.encoder = encoder
     }
     
@@ -164,7 +164,7 @@ private struct Unkeyed: UnkeyedEncodingContainer {
         try step().encode(value)
     }
     
-    mutating private func step() -> MiniJSONEncoder {
+    mutating private func step() -> TinyJSONEncoder {
         let index = currentIndex
         currentIndex += 1
         return encoder.child(index: JSON.Key.index(index))
@@ -184,7 +184,7 @@ private struct Unkeyed: UnkeyedEncodingContainer {
 }
 
 private struct SingleValue: SingleValueEncodingContainer {
-    var encoder: MiniJSONEncoder
+    var encoder: TinyJSONEncoder
     var codingPath: [CodingKey] { return encoder.codingPath }
     
     mutating func encodeNil() throws { encoder.json.raw = NSNull() }
@@ -213,7 +213,7 @@ private struct SingleValue: SingleValueEncodingContainer {
 
 private extension Date {
     
-    func encode(to encoder: MiniJSONEncoder, using strategy: JSONEncoder.DateEncodingStrategy) throws {
+    func encode(to encoder: TinyJSONEncoder, using strategy: JSONEncoder.DateEncodingStrategy) throws {
         switch strategy {
         case .deferredToDate:
             try self.encode(to: encoder)

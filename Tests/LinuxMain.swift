@@ -1,7 +1,7 @@
 import XCTest
 
-import MiniJSONTests
+import TinyJSONTests
 
 var tests = [XCTestCaseEntry]()
-tests += MiniJSONTests.allTests()
+tests += TinyJSONTests.allTests()
 XCTMain(tests)

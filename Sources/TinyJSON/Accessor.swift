@@ -1,6 +1,6 @@
 //
 //  Accessor.swift
-//  JSONKit
+//  TinyJSON
 //
 //  Created by Cemen Istomin on 20/10/2018.
 //  Covered by MIT license.
@@ -273,35 +273,20 @@ protocol TypeWithDefaultValue {
     init()
 }
 
-//extension TypeWithDefaultValue where Self: BinaryInteger {
-//    static var defaultValue: Self { return 0 }
-//}
-//
-//extension TypeWithDefaultValue where Self: BinaryFloatingPoint {
-//    static var defaultValue: Self { return 0.0 }
-//}
-//
-//extension String: TypeWithDefaultValue {
-//    static let defaultValue = ""
-//}
-//
-//extension Bool: TypeWithDefaultValue {
-//    static let defaultValue = false
-//}
 
 extension String: TypeWithDefaultValue {}
-extension Bool: TypeWithDefaultValue {}
+extension Bool:   TypeWithDefaultValue {}
 
-extension Int: TypeWithDefaultValue {}
-extension Int8: TypeWithDefaultValue {}
-extension Int16: TypeWithDefaultValue {}
-extension Int32: TypeWithDefaultValue {}
-extension Int64: TypeWithDefaultValue {}
-extension UInt: TypeWithDefaultValue {}
-extension UInt8: TypeWithDefaultValue {}
+extension Int:    TypeWithDefaultValue {}
+extension Int8:   TypeWithDefaultValue {}
+extension Int16:  TypeWithDefaultValue {}
+extension Int32:  TypeWithDefaultValue {}
+extension Int64:  TypeWithDefaultValue {}
+extension UInt:   TypeWithDefaultValue {}
+extension UInt8:  TypeWithDefaultValue {}
 extension UInt16: TypeWithDefaultValue {}
 extension UInt32: TypeWithDefaultValue {}
 extension UInt64: TypeWithDefaultValue {}
 
-extension Float: TypeWithDefaultValue {}
+extension Float:  TypeWithDefaultValue {}
 extension Double: TypeWithDefaultValue {}

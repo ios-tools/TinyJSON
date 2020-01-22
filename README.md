@@ -1,4 +1,4 @@
-# MiniJSON
+# TinyJSON
 
 Lightweight JSON processing lib inspired by SwiftyJSON. 
 Uses same approach for traversing and getting values.

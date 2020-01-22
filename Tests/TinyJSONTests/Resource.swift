@@ -1,6 +1,6 @@
 //
 //  Resource.swift
-//  JSONKitTests
+//  TinyJSONTests
 //
 //  Created by Cemen Istomin on 20/10/2018.
 //  Copyright © 2018 len-stone.com team. All rights reserved.
@@ -8,7 +8,7 @@
 
 import Foundation
 import XCTest
-@testable import MiniJSON
+@testable import TinyJSON
 
 enum ResourceError: Error {
     case notFound

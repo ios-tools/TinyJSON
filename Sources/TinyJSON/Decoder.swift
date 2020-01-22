@@ -1,6 +1,6 @@
 //
 //  Decoder.swift
-//  JSONKit
+//  TinyJSON
 //
 //  Created by Cemen Istomin on 20/10/2018.
 //  Covered by MIT license.
@@ -9,7 +9,7 @@
 import Foundation
 
 
-public class MiniJSONDecoder: Decoder {
+public class TinyJSONDecoder: Decoder {
     
     public typealias DateDecodingStrategy = JSONDecoder.DateDecodingStrategy
     public var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
@@ -18,8 +18,8 @@ public class MiniJSONDecoder: Decoder {
     public struct WrongStructureStrategy {
         public enum Strategy {
             case `throw`, useDefault
-            case report((MiniJSONDecoder, DecodingError) -> Void)
-//            case custom((MiniJSONDecoder) -> String)
+            case report((TinyJSONDecoder, DecodingError) -> Void)
+//            case custom((TinyJSONDecoder) -> String)
         }
         
         public var keyNotFound: Strategy
@@ -28,20 +28,20 @@ public class MiniJSONDecoder: Decoder {
         
         public static let `throw` = WrongStructureStrategy(keyNotFound: .throw, valueNotFound: .throw, typeMismatch: .throw)
         public static let useDefault = WrongStructureStrategy(keyNotFound: .useDefault, valueNotFound: .useDefault, typeMismatch: .useDefault)
-        public static func report(_ closure: @escaping (MiniJSONDecoder, DecodingError) -> Void) -> WrongStructureStrategy {
+        public static func report(_ closure: @escaping (TinyJSONDecoder, DecodingError) -> Void) -> WrongStructureStrategy {
             return WrongStructureStrategy(keyNotFound: .report(closure), valueNotFound: .report(closure), typeMismatch: .report(closure))
         }
     }
     public var wrongStructureStrategy: WrongStructureStrategy = .throw
     
     public internal(set) var json: JSON
-    private var _parent: MiniJSONDecoder?
-    var parent: MiniJSONDecoder { return _parent ?? self }
+    private var _parent: TinyJSONDecoder?
+    var parent: TinyJSONDecoder { return _parent ?? self }
     
     public private(set) var codingPath: [CodingKey] = []
     public var userInfo: [CodingUserInfoKey : Any] = [:]
     
-    public init(json: JSON, key: CodingKey? = nil, parent: MiniJSONDecoder? = nil) {
+    public init(json: JSON, key: CodingKey? = nil, parent: TinyJSONDecoder? = nil) {
         self.json = json
         _parent = parent
         if let parent = parent {
@@ -68,12 +68,12 @@ public class MiniJSONDecoder: Decoder {
     
     // MARK: - Utils
     
-    fileprivate func child(string key: CodingKey) -> MiniJSONDecoder {
-        return MiniJSONDecoder(json: json[key.stringValue], key: key, parent: self)
+    fileprivate func child(string key: CodingKey) -> TinyJSONDecoder {
+        return TinyJSONDecoder(json: json[key.stringValue], key: key, parent: self)
     }
     
-    fileprivate func child(index key: CodingKey) -> MiniJSONDecoder {
-        return MiniJSONDecoder(json: json[key.intValue!], key: key, parent: self)
+    fileprivate func child(index key: CodingKey) -> TinyJSONDecoder {
+        return TinyJSONDecoder(json: json[key.intValue!], key: key, parent: self)
     }
     
     fileprivate func decode<T: Decodable>(as type: T.Type) throws -> T {
@@ -121,7 +121,7 @@ private struct Keyed<Key: CodingKey>: KeyedDecodingContainerProtocol {
         guard let dictionary = decoder.json.raw as? [String: Any] else { return [] }
         return dictionary.keys.compactMap { Key(stringValue: $0) }
     }
-    var decoder: MiniJSONDecoder
+    var decoder: TinyJSONDecoder
     
     func contains(_ key: Key) -> Bool { return decoder.json[key.stringValue].exists }
     func decodeNil(forKey key: Key) throws -> Bool { return decoder.json[key.stringValue].isNull }
@@ -163,8 +163,8 @@ private struct Keyed<Key: CodingKey>: KeyedDecodingContainerProtocol {
 
 private struct Unkeyed: UnkeyedDecodingContainer {
     var currentIndex: Int = 0
-    var decoder: MiniJSONDecoder
-    init(decoder: MiniJSONDecoder) {
+    var decoder: TinyJSONDecoder
+    init(decoder: TinyJSONDecoder) {
         self.decoder = decoder
     }
     
@@ -195,7 +195,7 @@ private struct Unkeyed: UnkeyedDecodingContainer {
         return try step().decode(as: T.self)
     }
     
-    mutating private func step() -> MiniJSONDecoder {
+    mutating private func step() -> TinyJSONDecoder {
         let index = currentIndex
         currentIndex += 1
         return decoder.child(index: JSON.Key.index(index))
@@ -215,7 +215,7 @@ private struct Unkeyed: UnkeyedDecodingContainer {
 }
 
 private struct SingleValue: SingleValueDecodingContainer {
-    var decoder: MiniJSONDecoder
+    var decoder: TinyJSONDecoder
     var codingPath: [CodingKey] { return decoder.codingPath }
     
     func decodeNil() -> Bool { return decoder.json.isNull }
@@ -243,7 +243,7 @@ private struct SingleValue: SingleValueDecodingContainer {
 
 private extension Date {
     
-    init(from decoder: MiniJSONDecoder, using strategy: JSONDecoder.DateDecodingStrategy) throws {
+    init(from decoder: TinyJSONDecoder, using strategy: JSONDecoder.DateDecodingStrategy) throws {
         switch strategy {
         case .deferredToDate:
             try self.init(from: decoder)
